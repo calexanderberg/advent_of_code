@@ -1,43 +1,48 @@
+/*
+I need to find some way to change the for loops and refractor the main function. The Big O of this is nutty. 
+*/
+
 fn main() {
-    let file = std::fs::read_to_string("input.txt").unwrap();
+    let file = std::fs::read_to_string("test.txt").unwrap();
 
     let mut sum = 0;
-    let mut forrest: Vec<Vec<u32>> = vec![];
 		let mut best_score = 0;
-		let mut temp_score = 1;
 
-    for line in file.lines().filter(|l| !l.is_empty()) { 
-        forrest.push(line.chars()
-                   .map(|d| d.to_digit(10).unwrap())
-                   .collect());
-    }
+    let forrest: Vec<Vec<u32>>= file
+			.lines()
+			.map(|line| {
+				return line
+								.chars()
+								.filter_map(|d| d.to_digit(10))
+								.collect()
+			})
+			.collect();
+    
 
     for i in 0..forrest.len() {
         if i == 0 || i == forrest.len()-1 {
            continue;
         } else {
             for a in 1..forrest[i].len()-1 {
+								let mut found_end = false;
+								let mut temp_score = 1;
                 let mut result = 0;
                 for n in 1..5 {
-                    result = check_direction(n, forrest[i][a],(*forrest).to_vec(), [i, a]);
+									if !found_end {
+                  	result = check_direction(n, forrest[i][a],(*forrest).to_vec(), [i, a]);	
+									}
 
-                    if result == 1 {
-                        break;
-                    }
+                  if result == 1 {
+										found_end = true;
+									}
+
+									temp_score *= check_score(n, forrest[i][a],(*forrest).to_vec(), [i, a]); 
                 }
+								if temp_score > best_score {
+									best_score = temp_score;
+								}		
                 sum += result;
-            }
-
-						for a in 1..forrest[i].len()-1 {
-							temp_score = 1;
-							for n in 1..5 {
-									let temp = check_score(n, forrest[i][a],(*forrest).to_vec(), [i, a]); 
-									temp_score *= temp;
-							}
-							if temp_score > best_score {
-								best_score = temp_score;
-							}						
-						}
+            }		
 					}
 				}
 	// Add first and last row of trees
@@ -52,7 +57,7 @@ fn main() {
 
 
 /* 
-Tried to merge functional recursion like code with rust. It was fun, I wonder if I should od something similar to the main function.
+Tried to merge functional recursion like code with rust. It was fun, I might refactor this.
 */
 fn check_direction(direction: u32, from_val: u32, forrest: Vec<Vec<u32>>, [val1, val2]: [usize; 2]) -> usize {
 	let mut result = 0;
